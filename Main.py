@@ -9,8 +9,10 @@ WIDTH = 1000
 HEIGHT = 700
 
 ## Game settings
-DISTANCE_BETWEEN_POLES = 130
+GAP_BETWEEN_POLES = 130
+DISTANCE_BETWEEN_POLES = 200
 SPEED = 2.1
+STOP = 800
 
 
 ## imgs
@@ -23,13 +25,26 @@ bottom_pipe_img = pygame.image.load(os.path.join("Images/flappy_bird_bottom_pipe
 bottom_pipe_img = pygame.transform.scale(bottom_pipe_img, (255,600 ))
 
 
-#
-class Pipe():
-    x = 950
+def should_spawn_pipe(count):
+    print(count)
+    if count % DISTANCE_BETWEEN_POLES == 0 or count == 0:
+        return True
+    else:
+        return False
 
+
+def generate_pipes(pipes_array):
+    for p in pipes_array:
+        p.draw_pipe()
+        if p.x < 20:
+            pipes.remove(p)
+
+
+class Pipe():
     def __init__(self):
         self.pipe_bottom = random.randint(130, 600)
-        self.pipe_top = self.pipe_bottom - DISTANCE_BETWEEN_POLES
+        self.pipe_top = self.pipe_bottom - GAP_BETWEEN_POLES
+        self.x = 950
 
     def draw_pipe(self):
         SCREEN.blit(top_pipe_img, (self.x, self.pipe_top - 500))
@@ -48,11 +63,15 @@ clock = pygame.time.Clock()
 FPS = 60
 
 running = True
-count = 0
+frame_count = 0
+pipes = []
+newPole = Pipe()
+pipes.append(newPole)
 pole_made = False
+
 while running:
-    count += 1
-    if count > 400:
+    frame_count += 1
+    if frame_count > STOP:
         running = False
 
     for event in pygame.event.get():
@@ -67,10 +86,10 @@ while running:
 
     # --- Update ---
     SCREEN.blit(backround_img, (0, 0))
-    if (pole_made == False):
-        pole1 = Pipe()
-        pole_made = True
-    pole1.draw_pipe()
+
+    if should_spawn_pipe(frame_count):
+        pipes.append(Pipe())
+    generate_pipes(pipes)
 
     #
     # SCREEN.blit(top_pipe_img, (500, -30))
