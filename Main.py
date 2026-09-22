@@ -2,7 +2,8 @@ import random
 import pygame
 import sys
 import os
-import time             # fix gravity, collision, pygame.mask() ?
+import time
+import math # fix gravity, collision pygame.mask() ?
 
 
 # UI settings
@@ -10,10 +11,9 @@ WIDTH = 1000
 HEIGHT = 700
 
 # Game settings
-GAP_BETWEEN_POLES = 130
-DISTANCE_BETWEEN_POLES = 200
-SPEED = 2.1
-GRAVITY = 6
+GAP_BETWEEN_POLES = 140
+NEXT_POLE_DISTANCE = 120
+PIPE_SPEED = 4
 STOP = 800
 FPS = 30
 AI_MODE = False
@@ -23,16 +23,16 @@ backround_img = pygame.image.load(os.path.join("Images/flappy_bird_backround2.pn
 backround_img = pygame.transform.scale(backround_img, (WIDTH, HEIGHT))
 
 bird_img = pygame.image.load(os.path.join("Images/ChatGPT Image Sep 16, 2026, 06_55_27 PM.png"))
-bird_img = pygame.transform.scale(bird_img, (90, 70))
+bird_img = pygame.transform.scale(bird_img, (70, 55))
 
 top_pipe_img = pygame.image.load(os.path.join("Images/flappy_bird_top_pipe.png"))
-top_pipe_img = pygame.transform.scale(top_pipe_img, (255, 600))
+top_pipe_img = pygame.transform.scale(top_pipe_img, (300, 600))
 bottom_pipe_img = pygame.image.load(os.path.join("Images/flappy_bird_bottom_pipe.png"))
-bottom_pipe_img = pygame.transform.scale(bottom_pipe_img, (255, 600))
+bottom_pipe_img = pygame.transform.scale(bottom_pipe_img, (300, 600))
 
 
 def should_spawn_pipe(count):
-    if count % DISTANCE_BETWEEN_POLES == 0 or count == 0:
+    if count % NEXT_POLE_DISTANCE == 0 or count == 0:
         return True
     else:
         return False
@@ -46,20 +46,23 @@ def generate_pipes(pipes_array):
 
 
 class Bird():
-    GRAVITY = -1
-    print(GRAVITY)
+    GRAVITY = -2.2
+    FLAP_STRENGTH = 13
+    MAX_SPEED = -15
 
     def __init__(self):
         self.y = 300
         self.velocity_y = 0
 
     def draw_bird(self):
-        self.velocity_y -= GRAVITY
-        self.y -= self.velocity_y / 100
+        if self.velocity_y > self.MAX_SPEED:
+            self.velocity_y += self.GRAVITY
+        self.y -= self.velocity_y
         SCREEN.blit(bird_img, (700, self.y))
 
     def flap(self):
-        self.velocity_y += GRAVITY * 100
+        print("flap")
+        self.velocity_y = self.FLAP_STRENGTH + self.velocity_y / 5
 
     def collision(self):
         return False
@@ -74,7 +77,7 @@ class Pipe():
     def draw_pipe(self):
         SCREEN.blit(top_pipe_img, (self.x, self.pipe_top - 500))
         SCREEN.blit(bottom_pipe_img, (self.x, self.pipe_bottom))
-        self.x -= SPEED
+        self.x -= PIPE_SPEED
 
 
 # Initialize Pygame
