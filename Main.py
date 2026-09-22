@@ -1,32 +1,37 @@
 import random
-
 import pygame
 import sys
 import os
+import time             # fix gravity, collision, pygame.mask() ?
 
-## UI settings
+
+# UI settings
 WIDTH = 1000
 HEIGHT = 700
 
-## Game settings
+# Game settings
 GAP_BETWEEN_POLES = 130
 DISTANCE_BETWEEN_POLES = 200
 SPEED = 2.1
+GRAVITY = 6
 STOP = 800
-
+FPS = 30
+AI_MODE = False
 
 ## imgs
 backround_img = pygame.image.load(os.path.join("Images/flappy_bird_backround2.png"))
 backround_img = pygame.transform.scale(backround_img, (WIDTH, HEIGHT))
 
+bird_img = pygame.image.load(os.path.join("Images/ChatGPT Image Sep 16, 2026, 06_55_27 PM.png"))
+bird_img = pygame.transform.scale(bird_img, (90, 70))
+
 top_pipe_img = pygame.image.load(os.path.join("Images/flappy_bird_top_pipe.png"))
-top_pipe_img = pygame.transform.scale(top_pipe_img, (255,600 ))
+top_pipe_img = pygame.transform.scale(top_pipe_img, (255, 600))
 bottom_pipe_img = pygame.image.load(os.path.join("Images/flappy_bird_bottom_pipe.png"))
-bottom_pipe_img = pygame.transform.scale(bottom_pipe_img, (255,600 ))
+bottom_pipe_img = pygame.transform.scale(bottom_pipe_img, (255, 600))
 
 
 def should_spawn_pipe(count):
-    print(count)
     if count % DISTANCE_BETWEEN_POLES == 0 or count == 0:
         return True
     else:
@@ -36,8 +41,28 @@ def should_spawn_pipe(count):
 def generate_pipes(pipes_array):
     for p in pipes_array:
         p.draw_pipe()
-        if p.x < 20:
+        if p.x < -120:
             pipes.remove(p)
+
+
+class Bird():
+    GRAVITY = -1
+    print(GRAVITY)
+
+    def __init__(self):
+        self.y = 300
+        self.velocity_y = 0
+
+    def draw_bird(self):
+        self.velocity_y -= GRAVITY
+        self.y -= self.velocity_y / 100
+        SCREEN.blit(bird_img, (700, self.y))
+
+    def flap(self):
+        self.velocity_y += GRAVITY * 100
+
+    def collision(self):
+        return False
 
 
 class Pipe():
@@ -52,7 +77,6 @@ class Pipe():
         self.x -= SPEED
 
 
-
 # Initialize Pygame
 pygame.init()
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -60,11 +84,11 @@ pygame.display.set_caption("Flappy Bird")
 
 # Clock for controlling FPS
 clock = pygame.time.Clock()
-FPS = 60
 
 running = True
 frame_count = 0
 pipes = []
+birds = [Bird()]
 newPole = Pipe()
 pipes.append(newPole)
 pole_made = False
@@ -83,30 +107,35 @@ while running:
                 running = False
 
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_SPACE]:
+        for bird in birds:
+            bird.flap()
 
     # --- Update ---
     SCREEN.blit(backround_img, (0, 0))
 
-    if should_spawn_pipe(frame_count):
+    if should_spawn_pipe(frame_count):          #spawn pipes
         pipes.append(Pipe())
     generate_pipes(pipes)
 
-    #
+    for bird in birds:                          # render birds
+        bird.draw_bird()
+        if not AI_MODE and bird.collision():            # will usally short circut
+            font = pygame.font.Font(None, 100)
+            text = font.render("GAME OVER", True, (220, 0, 0))   # ending game in player mode
+            SCREEN.blit(text, (300, 300))
+            running = False
+            time.sleep(2)
+
+    SCREEN.blit(bird_img, (150, 300))
     # SCREEN.blit(top_pipe_img, (500, -30))
     # SCREEN.blit(bottom_pipe_img, (500, 600))
     #
     # SCREEN.blit(top_pipe_img, (400, -500))
     # SCREEN.blit(bottom_pipe_img, (400, 130))
 
-
-    # Update player, enemies, physics, etc. here
-    # --- Draw ---
-
-    # Draw game objects here
-
     # Update display
     pygame.display.flip()
-
     # Limit FPS
     clock.tick(FPS)
 
