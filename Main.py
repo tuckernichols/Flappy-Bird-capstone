@@ -19,6 +19,7 @@ HEIGHT = 700
 POLE_WIDTH = 300
 GAP_BETWEEN_POLES = 150
 NEXT_POLE_DISTANCE = 120
+BIRD_SPAWN_Y = 150
 PIPE_SPEED = 4
 STOP = 800
 FPS = 30
@@ -49,8 +50,7 @@ def end_game():
     text = font.render("GAME OVER", True, (220, 0, 0))  # ending game in player mode
     SCREEN.blit(text, (300, 300))
     pygame.display.flip()
-    running = False
-    time.sleep(2)
+    return False
 
 
 def generate_pipes(pipes_array):
@@ -78,11 +78,13 @@ class Bird():
     def flap(self):
         self.velocity_y = self.FLAP_STRENGTH + self.velocity_y / 5
 
-    def flap_decision(self, top_pipe_VTD, bottom_pipe_V, pipe_HD):
+    def flap_decision(self, top_pipe_VTD, bottom_pipe_VTD, pipe_HD):
         top_pipe_VTD = self.y - top_pipe_VTD
-        bottom_pipe_V = self.y - top_pipe_VTD
-        inputs = [top_pipe_VTD, bottom_pipe_V, pipe_HD, self.velocity_y]
-        print(inputs)
+        bottom_pipe_VTD = self.y - bottom_pipe_VTD
+        pipe_HD -= BIRD_SPAWN_Y - 70
+        inputs = [top_pipe_VTD, bottom_pipe_VTD, pipe_HD, self.velocity_y]
+        print(inputs[2])
+        # print("topVTD,        bottomVTD,       HD,  B.velo")
 
     # Vertical distance from bird to top of next pipe gap.
     # Vertical distance from bird to bottom of next pipe gap.
@@ -92,6 +94,8 @@ class Bird():
     def collision(self):
         if self.y > 640 or self.y < -10:        # top / bottom collision
             return True
+        else:
+            pass
 
     def get_height(self):
         return self.y
@@ -112,13 +116,20 @@ class Pipe():
         self.x -= PIPE_SPEED
 
     def get_bottom(self):
-        return self.pipe_bottom
+        return self.pipe_bottom + 48
 
     def get_top(self):
-        return self.pipe_top
+        return self.pipe_top + 53
 
     def get_x(self):
-        return self.x
+        return self.x + 112     # pipe img width is 300 real width is around 100
+
+    @staticmethod
+    def get_next_pipe(pipe_list):
+        for p in pipe_list:
+            if p.get_x() + 70 + 100 >= BIRD_SPAWN_Y:
+                return p
+
 
 # Initialize Pygame
 pygame.init()
@@ -153,6 +164,8 @@ while running:
     if keys[pygame.K_SPACE]:
         for bird in birds:
             bird.flap()
+    if keys[pygame.K_b]:
+        time.sleep(30)
 
     # --- Update ---
     SCREEN.blit(backround_img, (0, 0))
@@ -164,10 +177,12 @@ while running:
     for bird in birds:                          # render birds
         bird.draw_bird()
         if not AI_MODE and bird.collision():            # will usally short circut
-            end_game()
+            running = end_game()
         elif AI_MODE or True:
-            nextPipe = pipes[0]     # fix later
-            bird.flap_decision(nextPipe.pipe_top, nextPipe.pipe_bottom, nextPipe.get_x() )
+            nextPipe = Pipe.get_next_pipe(pipe_list=pipes)     # fix later
+            pygame.draw.line(SCREEN, (255, 0, 0), (nextPipe.get_x(), nextPipe.get_top()), (nextPipe.get_x() + 80, nextPipe.get_top()), 1)
+            pygame.draw.line(SCREEN, (255, 0, 0), (nextPipe.get_x(), nextPipe.get_bottom()), (nextPipe.get_x() + 80, nextPipe.get_bottom()), 1)
+            bird.flap_decision(nextPipe.get_top(),nextPipe.get_bottom(), nextPipe.get_x())
 
     # SCREEN.blit(bird_img, (150, 300))
     # SCREEN.blit(top_pipe_img, (500, -30))
@@ -182,5 +197,6 @@ while running:
     clock.tick(FPS)
 
 # Quit
+print(" \n \n  GAME OVER RESET \n \n \n")
 pygame.quit()
 sys.exit()
