@@ -5,10 +5,10 @@ import os
 import time
 
 # TODO
-#   collision pygame.mask() ?
-#   getters for pipe location
-#   getters for distance to pipe
-#   figute out all imputs for the AI
+#   collision pygame.mask()
+#   make bird and pipe seperate files
+#   init random starting weights
+
 
 
 # UI settings
@@ -127,7 +127,7 @@ class Pipe():
     @staticmethod
     def get_next_pipe(pipe_list):
         for p in pipe_list:
-            if p.get_x() + 70 + 100 >= BIRD_SPAWN_Y:
+            if p.get_x() + 70 >= BIRD_SPAWN_Y:
                 return p
 
 
@@ -182,6 +182,7 @@ while running:
             nextPipe = Pipe.get_next_pipe(pipe_list=pipes)     # fix later
             pygame.draw.line(SCREEN, (255, 0, 0), (nextPipe.get_x(), nextPipe.get_top()), (nextPipe.get_x() + 80, nextPipe.get_top()), 1)
             pygame.draw.line(SCREEN, (255, 0, 0), (nextPipe.get_x(), nextPipe.get_bottom()), (nextPipe.get_x() + 80, nextPipe.get_bottom()), 1)
+            pygame.draw.line(SCREEN, (255, 0, 0), (nextPipe.get_x(), nextPipe.get_top() - 50 ), (nextPipe.get_x(), nextPipe.get_bottom() + 50), 1)
             bird.flap_decision(nextPipe.get_top(),nextPipe.get_bottom(), nextPipe.get_x())
 
     # SCREEN.blit(bird_img, (150, 300))
